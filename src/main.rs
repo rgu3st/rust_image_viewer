@@ -56,7 +56,7 @@ fn main() {
             let rgb = pixel;
             // Fill the buffer with a=1 and rgb = what we got from the pixel 
             // For now,  just put on "shades" depending on mouse position:
-            if i < (mouse_row * mouse_col * 2) as usize{  // Why do I need the 2?
+            if i < (mouse_row * img.width() ) as usize{  
                 dim_amount = 25;
             } else {
                 dim_amount = 0;
