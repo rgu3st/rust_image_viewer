@@ -1,7 +1,7 @@
 use minifb::{Key, Window, WindowOptions, MouseMode};
 use std::path::Path;
 use std::thread;
-//use image::DynamicImage;
+use image::imageops;
 
 /* 
 fn update_buffer(buffer1, dim_amount, r, g, b){
@@ -9,11 +9,27 @@ fn update_buffer(buffer1, dim_amount, r, g, b){
 		
 }*/
 
+fn load_sprite(sprite_path as Path, sprite_size as u32){
+    let mut sprite = image::open(&sprite_path).expect("Oh noes! Couldn't open sprite.");
+    sprite = sprite.resize(sprite_size, sprite_size, imageops::FilterType::CatmullRom);
+    let sprite_buf = sprite.to_rgb8(); // Do I really need to do this??
+    return sprite_buf;
+}
+
 fn main() {
 	// Get image:
 	let image_path = Path::new("test_rustacean.png");
 	let img = image::open(&image_path).expect("Oh noes! Couldn't open image.");
 	let img = img.to_rgb8(); // TODO: look up image type options!
+
+    // Load and resize sprite1:
+    let sprite_path = Path::new("test_rustacean_sprite_med_crab_mech_1.png");
+    let mut sprite1 = image::open(&sprite_path).expect("Oh noes! Couldn't open sprite.");
+    let sprite1_size = 256 as u32;
+    sprite1 = sprite1.resize(sprite1_size, sprite1_size, imageops::FilterType::CatmullRom);
+    let sprite1_buf = sprite1.to_rgb8(); // Do I really need to do this??
+   
+
 
 	let mut window = Window::new(
 		"Rob's Image Viewer!",
@@ -30,7 +46,7 @@ fn main() {
 	// I'm sure I could use this for an interactive video by creating two buffers, display and update and swap. Classic.
 	// "vec!" is a provided macro to "create a vetor and hold the values we provide". (Bing search.)
 	let mut buffer1 = vec![0u32; img.width() as usize * img.height() as usize];
-    let mut buffer2 = vec![0u32; img.width() as usize * img.height() as usize];
+    //let mut sprite_buffer1 = vec![0u32; sprite1.width() as usize * sprite1.height() as usize];
     let mut r = 0u32;
     let mut g = 0u32;
     let mut b = 0u32;
@@ -40,8 +56,6 @@ fn main() {
 
     
 	// Main Loop!
-    
-
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
 
@@ -53,7 +67,10 @@ fn main() {
 
         //update_buffer(buffer1, dim_amount, r, g, b);
         for (i, pixel) in img.pixels().enumerate(){
+            let col_num = (i as u32) % (img.width() as u32);  // This works since modulo gives column number
+            let row_num = (i as u32) / (img.width() as u32);  // This works since we're using integer division
             let rgb = pixel;
+            
             // Fill the buffer with a=1 and rgb = what we got from the pixel 
             // For now,  just put on "shades" depending on mouse position:
             if i < (mouse_row * img.width() ) as usize{  
@@ -62,6 +79,7 @@ fn main() {
                 dim_amount = 0;
             }
 
+         
             if rgb[0] as u32 > dim_amount{
                 r = (rgb[0] as u32) - dim_amount;
             } else {
@@ -78,6 +96,34 @@ fn main() {
                 b = 0;
             }
             let a = 0xFF;
+
+
+            // TODO: add some offset (or use the mouse position) for the sprite
+            //Layer sprite on top of image:
+            if col_num < sprite1_buf.width() && row_num < sprite1_buf.height(){
+                let sprite_pixel = sprite1_buf.get_pixel(col_num, row_num);
+                let sprite_rgb = sprite_pixel;
+
+                // Knock out white background:
+                let luma_key_low = 240 as u8;
+                let luma_key_high = 255 as u8;
+                if sprite_rgb[0] >= luma_key_low && sprite_rgb[1] >= luma_key_low && sprite_rgb[2] >= luma_key_low{
+                    if sprite_rgb[0] >= luma_key_high && sprite_rgb[1] >= luma_key_high && sprite_rgb[2] >= luma_key_high{
+                        r = sprite_rgb[0] as u32;
+                        g = sprite_rgb[1] as u32;
+                        b = sprite_rgb[2] as u32;
+                    
+                }
+                } else {
+                    r = sprite_rgb[0] as u32;
+                    g = sprite_rgb[1] as u32;
+                    b = sprite_rgb[2] as u32;
+                }
+            }
+
+
+
+
             buffer1[i] = ( a << 24 ) | ( r << 16) | ( g << 8 ) | ( b );
         }
         window.update_with_buffer(&buffer1, img.width() as usize, img.height() as usize).unwrap();
