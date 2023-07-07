@@ -116,21 +116,12 @@ fn main() {
                 let sprite_rgb = sprite_pixel;
 
                 // Knock out white background:
-                let luma_key_low = 240 as u8;
-                let luma_key_high = 255 as u8;
+                let luma_key_low = 0 as u8;
                 if sprite_rgb[0] >= luma_key_low && sprite_rgb[1] >= luma_key_low && sprite_rgb[2] >= luma_key_low{
-                    if sprite_rgb[0] >= luma_key_high && sprite_rgb[1] >= luma_key_high && sprite_rgb[2] >= luma_key_high{
-                        r = sprite_rgb[0] as u32;
-                        g = sprite_rgb[1] as u32;
-                        b = sprite_rgb[2] as u32;
-                }
-                } else {
                     r = sprite_rgb[0] as u32;
                     g = sprite_rgb[1] as u32;
                     b = sprite_rgb[2] as u32;
                 }
-
-                //window.update_with_buffer(&buffer1, img.width() as usize, img.height() as usize).unwrap();
             }
 
 
