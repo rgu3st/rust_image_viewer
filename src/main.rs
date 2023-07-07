@@ -26,7 +26,7 @@ fn main() {
     // Load and resize sprite1:
     let sprite1_path = Path::new("test_rustacean_sprite_med_crab_mech_1.png");
     let sprite1_buf = load_sprite(sprite1_path, 256);
-
+    let mut sprite1_offset: (u32, u32) = (1280, 140);
 
 
 	let mut window = Window::new(
@@ -96,10 +96,16 @@ fn main() {
             let a = 0xFF;
 
 
-            // TODO: add some offset (or use the mouse position) for the sprite
             //Layer sprite on top of image:
-            if col_num < sprite1_buf.width() && row_num < sprite1_buf.height(){
-                let sprite_pixel = sprite1_buf.get_pixel(col_num, row_num);
+            // Adding offset from mouse position:
+            sprite1_offset = (mouse_col, mouse_row);
+            
+            if  col_num < sprite1_offset.0 + sprite1_buf.width() 
+                && col_num >= sprite1_offset.0
+                && row_num < sprite1_offset.1 + sprite1_buf.height()
+                && row_num >= sprite1_offset.1
+                {
+                let sprite_pixel = sprite1_buf.get_pixel(col_num-sprite1_offset.0, row_num-sprite1_offset.1);
                 let sprite_rgb = sprite_pixel;
 
                 // Knock out white background:
@@ -110,13 +116,14 @@ fn main() {
                         r = sprite_rgb[0] as u32;
                         g = sprite_rgb[1] as u32;
                         b = sprite_rgb[2] as u32;
-                    
                 }
                 } else {
                     r = sprite_rgb[0] as u32;
                     g = sprite_rgb[1] as u32;
                     b = sprite_rgb[2] as u32;
                 }
+
+                //window.update_with_buffer(&buffer1, img.width() as usize, img.height() as usize).unwrap();
             }
 
 
@@ -129,10 +136,13 @@ fn main() {
 
 
         let one_sixtieth = std::time::Duration::from_millis(16);
+        let one_120th = std::time::Duration::from_millis(8);
         let one_second = std::time::Duration::from_millis(1000);
-        thread::sleep(one_sixtieth);  // Lock "frame rate" to 60fps
+        thread::sleep(one_120th);  // Lock "frame rate" to 120fps
+        //thread::sleep(one_sixtieth);  // Lock "frame rate" to 60fps
         //thread::sleep(one_second);  // Lock "frame rate" to 1fps
 
+        //println!("Mouse cursor at: ({}, {})", mouse_row, mouse_col);
     
     }
 
