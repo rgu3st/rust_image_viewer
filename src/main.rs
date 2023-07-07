@@ -16,6 +16,12 @@ fn load_sprite(sprite_path: &Path, sprite_size: u32) -> image::ImageBuffer<image
     sprite_rgb  // Apparently, the last expression is returned by default...
 }
 
+fn sub(minuend: u32, subtruend: u32) -> u32{
+    if minuend < subtruend{
+        return 0;
+    }
+    minuend - subtruend
+}
 
 fn main() {
 	// Get image:
@@ -98,7 +104,8 @@ fn main() {
 
             //Layer sprite on top of image:
             // Adding offset from mouse position:
-            sprite1_offset = (mouse_col, mouse_row);
+            sprite1_offset.0 = sub(mouse_col, sprite1_buf.width()/2); 
+            sprite1_offset.1 = sub(mouse_row, sprite1_buf.height()/2);
             
             if  col_num < sprite1_offset.0 + sprite1_buf.width() 
                 && col_num >= sprite1_offset.0
