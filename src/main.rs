@@ -9,12 +9,13 @@ fn update_buffer(buffer1, dim_amount, r, g, b){
 		
 }*/
 
-fn load_sprite(sprite_path as Path, sprite_size as u32){
-    let mut sprite = image::open(&sprite_path).expect("Oh noes! Couldn't open sprite.");
-    sprite = sprite.resize(sprite_size, sprite_size, imageops::FilterType::CatmullRom);
-    let sprite_buf = sprite.to_rgb8(); // Do I really need to do this??
-    return sprite_buf;
+fn load_sprite(sprite_path: &Path, sprite_size: u32) -> image::ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+    let sprite = image::open(sprite_path).expect("Oh noes! Couldn't open sprite.");
+    let sprite_resized = sprite.resize_exact(sprite_size, sprite_size, imageops::FilterType::CatmullRom);
+    let sprite_rgb = sprite_resized.into_rgb8();
+    sprite_rgb  // Apparently, the last expression is returned by default...
 }
+
 
 fn main() {
 	// Get image:
@@ -23,12 +24,9 @@ fn main() {
 	let img = img.to_rgb8(); // TODO: look up image type options!
 
     // Load and resize sprite1:
-    let sprite_path = Path::new("test_rustacean_sprite_med_crab_mech_1.png");
-    let mut sprite1 = image::open(&sprite_path).expect("Oh noes! Couldn't open sprite.");
-    let sprite1_size = 256 as u32;
-    sprite1 = sprite1.resize(sprite1_size, sprite1_size, imageops::FilterType::CatmullRom);
-    let sprite1_buf = sprite1.to_rgb8(); // Do I really need to do this??
-   
+    let sprite1_path = Path::new("test_rustacean_sprite_med_crab_mech_1.png");
+    let sprite1_buf = load_sprite(sprite1_path, 256);
+
 
 
 	let mut window = Window::new(
