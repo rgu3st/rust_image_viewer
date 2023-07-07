@@ -25,14 +25,14 @@ fn sub(minuend: u32, subtruend: u32) -> u32{
 
 fn main() {
 	// Get image:
-	let image_path = Path::new("test_rustacean.png");
+	let image_path = Path::new("bg_scene_1.png");
 	let img = image::open(&image_path).expect("Oh noes! Couldn't open image.");
 	let img = img.to_rgb8(); // TODO: look up image type options!
 
     // Load and resize sprite1:
     let sprite1_path = Path::new("test_rustacean_sprite_med_crab_mech_1.png");
     let sprite1_buf = load_sprite(sprite1_path, 256);
-    let mut sprite1_offset: (u32, u32) = (1280, 140);
+    let mut sprite1_offset: (u32, u32) = (256, 677);
 
 
 	let mut window = Window::new(
@@ -76,31 +76,10 @@ fn main() {
             let rgb = pixel;
             
             // Fill the buffer with a=1 and rgb = what we got from the pixel 
-            // For now,  just put on "shades" depending on mouse position:
-            if i < (mouse_row * img.width() ) as usize{  
-                dim_amount = 25;
-            } else {
-                dim_amount = 0;
-            }
-
-         
-            if rgb[0] as u32 > dim_amount{
-                r = (rgb[0] as u32) - dim_amount;
-            } else {
-                r = 0;
-            }
-            if rgb[1] as u32 > dim_amount * 2{
-                g = (rgb[1] as u32) - dim_amount * 2;
-            } else {
-                g = 0;
-            }
-            if rgb[2] as u32 > dim_amount * 3 {
-                b = (rgb[2] as u32) - dim_amount * 3;
-            } else {
-                b = 0;
-            }
+            r = (rgb[0] as u32);
+            g = (rgb[1] as u32);
+            b = (rgb[2] as u32);
             let a = 0xFF;
-
 
             //Layer sprite on top of image:
             // Adding offset from mouse position:
@@ -112,19 +91,23 @@ fn main() {
                 && row_num < sprite1_offset.1 + sprite1_buf.height()
                 && row_num >= sprite1_offset.1
                 {
-                let sprite_pixel = sprite1_buf.get_pixel(col_num-sprite1_offset.0, row_num-sprite1_offset.1);
+                
+                // Add in a stipulation so that the sprite faces left on the left of the screen and right on the right of the screen:
+                let mut sprite1_pixel = (col_num-sprite1_offset.0, row_num-sprite1_offset.1);
+                if mouse_col < img.width()/2{
+                    sprite1_pixel.0 = sprite1_buf.width() - sprite1_pixel.0 - 1;
+                }
+                let sprite_pixel = sprite1_buf.get_pixel(sprite1_pixel.0, sprite1_pixel.1);
                 let sprite_rgb = sprite_pixel;
 
                 // Knock out white background:
-                let luma_key_low = 0 as u8;
-                if sprite_rgb[0] >= luma_key_low && sprite_rgb[1] >= luma_key_low && sprite_rgb[2] >= luma_key_low{
+                let luma_key_low = 1 as u8;
+                if sprite_rgb[0] > luma_key_low && sprite_rgb[1] > luma_key_low && sprite_rgb[2] > luma_key_low{
                     r = sprite_rgb[0] as u32;
                     g = sprite_rgb[1] as u32;
                     b = sprite_rgb[2] as u32;
                 }
             }
-
-
 
 
             buffer1[i] = ( a << 24 ) | ( r << 16) | ( g << 8 ) | ( b );
@@ -140,7 +123,7 @@ fn main() {
         //thread::sleep(one_sixtieth);  // Lock "frame rate" to 60fps
         //thread::sleep(one_second);  // Lock "frame rate" to 1fps
 
-        //println!("Mouse cursor at: ({}, {})", mouse_row, mouse_col);
+        println!("Mouse cursor at: ({}, {})", mouse_row, mouse_col);
     
     }
 
