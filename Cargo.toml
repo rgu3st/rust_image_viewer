@@ -9,4 +9,3 @@ edition = "2021"
 minifb = "0.24.0"
 image = "0.23.0"
 
-
