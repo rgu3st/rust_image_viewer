@@ -1,6 +1,7 @@
 use minifb::{Key, Window, WindowOptions, MouseMode};
 use std::path::Path;
 use std::thread;
+use std::time::Duration;
 use image::imageops;
 use std::fs::File;
 
@@ -20,12 +21,39 @@ fn sub(minuend: u32, subtruend: u32) -> u32{
     minuend - subtruend
 }
 
+fn get_keyboard_input(window: Window){
+    /*
+    if window.is_key_down(Key::Left) && sprite1_offset.0 > 0{
+        sprite1_offset.0 = sub(sprite1_offset.0, char_speed);
+        moving_left = true;
+    }
+    else if window.is_key_down(Key::Right) && sprite1_offset.0 < sub(img.width(), sprite1_buf.width()){
+        sprite1_offset.0 += char_speed;
+        moving_left = false;
+    }
+    // Check spacebar for jump:
+    if window.is_key_down(Key::Space){
+        sprite1_offset.1 = jumpheight;
+    }
+    */
+}
+
 fn main() {
     // Attributes:
     let frame_rate: u32 = 60;
     let char_speed: u32 = 15;
+    let fly_speed: u32 = 3000;
+    let jump_height: u32 = 160;
+    let mut grounded:bool = true;
     let mut moving_left = false;
     let char_size: u32 = 296;
+    let sprite1_ground_offset: u32 = 520;
+
+    // Global variables:
+    let delta_time = std::time::Duration::from_millis(1000 / frame_rate as u64);
+    let initial_gravity: f32 = 10.;
+    let mut gravity:f32 = initial_gravity;
+    let gravity_accelleration: f32 = 1.1;
 
 	// Get image:
 	let image_path = Path::new("bg_scene_1.png");
@@ -35,8 +63,7 @@ fn main() {
     // Load and resize sprite1:
     let sprite1_path = Path::new("test_rustacean_sprite_med_crab_mech_1.png");
     let sprite1_buf = load_sprite(sprite1_path, char_size);
-    let mut sprite1_offset: (u32, u32) = (256, 520);
-
+    let mut sprite1_offset: (u32, u32) = (256, sprite1_ground_offset);
 
     // Load the cursor:
     let cursor_path = Path::new("cursor_2.png");
@@ -71,17 +98,43 @@ fn main() {
         let mouse_col = mouse_pos.0 as u32;
         let mouse_row = mouse_pos.1 as u32;
         //println!("Mouse cursor at: ({}, {})", mouse_row, mouse_col);
-
         
-        // Changing offset from mouse position to keyboard input:
-        if window.is_key_down(Key::Left) && sprite1_offset.0 > 0{
+        //get_keyboard_input(window);
+        if window.is_key_down(Key::Left) 
+          || window.is_key_down(Key::A)
+          && sprite1_offset.0 > 0{
             sprite1_offset.0 = sub(sprite1_offset.0, char_speed);
             moving_left = true;
         }
-        else if window.is_key_down(Key::Right) && sprite1_offset.0 < sub(img.width(), sprite1_buf.width()){
+        else if window.is_key_down(Key::Right)
+          || window.is_key_down(Key::D)
+          && sprite1_offset.0 < sub(img.width(), sprite1_buf.width()){
             sprite1_offset.0 += char_speed;
             moving_left = false;
         }
+        // Check ctl for fly:
+        if window.is_key_down(Key::LeftCtrl) && sprite1_offset.1 > 0 {
+            sprite1_offset.1 = sub(sprite1_offset.1, (fly_speed as u128 * delta_time.as_millis() / 1000) as u32);
+            grounded = false;
+        }
+        // Check spacebar for jump:
+        if window.is_key_down(Key::Space) && sprite1_offset.1 > 0 && grounded {
+            sprite1_offset.1 -= jump_height;
+            grounded = false;
+        }
+
+        // Apply gravity:
+        if(sprite1_offset.1 < sprite1_ground_offset){
+            sprite1_offset.1 += gravity as u32;
+            gravity *= gravity_accelleration;
+
+            if sprite1_offset.1 > sprite1_ground_offset{
+                sprite1_offset.1 = sprite1_ground_offset;
+                gravity = initial_gravity;
+                grounded = true;
+            }
+        }
+       
 
         /*
             ALL THE PIXELS!
@@ -158,7 +211,6 @@ fn main() {
 
 
 
-        let delta_time = std::time::Duration::from_millis(1000 / frame_rate as u64);
         thread::sleep(delta_time);  // Lock "frame rate" 
     
     }
